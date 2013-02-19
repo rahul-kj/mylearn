@@ -1,0 +1,9 @@
+--- 
+applications: 
+- instances: 1
+  runtime: java
+  name: learn
+  framework: spring
+  path: .
+  url: learn.${target-base}
+  memory: 256M

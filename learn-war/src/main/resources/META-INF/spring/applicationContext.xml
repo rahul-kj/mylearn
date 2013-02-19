@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:cloud="http://schema.cloudfoundry.org/spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.2.xsd
+		http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp-2.2.xsd
+		http://schema.cloudfoundry.org/spring http://schema.cloudfoundry.org/spring/cloudfoundry-spring-0.8.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<context:spring-configured />
+
+	<mvc:annotation-driven />
+	<mvc:default-servlet-handler />
+
+	<context:component-scan base-package="com.rahul.learn" />
+
+
+	<!-- Integration Code starts -->
+
+	<!-- <bean class="org.cloudfoundry.runtime.env.CloudEnvironment" /> <cloud:rabbit-connection-factory 
+		service-name="myRabbitMQ" id="rabbitConnectionFactory" /> -->
+
+	<rabbit:connection-factory host="localhost"
+		port="5672" username="guest" password="guest" id="connectionFactory" />
+
+	<rabbit:admin connection-factory="connectionFactory" />
+
+	<rabbit:template id="rabbitTemplate"
+		connection-factory="connectionFactory" message-converter="jsonMessageConverter" />
+
+	<!-- Integration Code ends -->
+
+	<rabbit:queue name="policyQueue" />
+	<rabbit:queue name="policyReplyQueue" />
+
+	<rabbit:topic-exchange id="topicExchange" name="app.topic.exchange">
+		<rabbit:bindings>
+			<rabbit:binding queue="policyQueue" pattern="api.policy.data.#" />
+		</rabbit:bindings>
+	</rabbit:topic-exchange>
+
+	<bean class="com.rahul.learn.publish.MessageGateway" id="messageGateway">
+		<property name="rabbitTemplate" ref="rabbitTemplate" />
+		<property name="exchange" value="app.topic.exchange" />
+	</bean>
+	
+	<bean class="org.springframework.amqp.support.converter.JsonMessageConverter"
+		id="jsonMessageConverter" />
+
+</beans>
