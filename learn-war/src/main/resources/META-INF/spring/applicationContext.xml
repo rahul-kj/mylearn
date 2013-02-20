@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:aop="http://www.springframework.org/schema/aop"
-	xmlns:mvc="http://www.springframework.org/schema/mvc"
-	xmlns:util="http://www.springframework.org/schema/util"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:tx="http://www.springframework.org/schema/tx"
-	xmlns:jee="http://www.springframework.org/schema/jee"
-	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
@@ -43,25 +39,42 @@
 	<rabbit:admin connection-factory="connectionFactory" />
 
 	<rabbit:template id="rabbitTemplate"
-		connection-factory="connectionFactory" message-converter="jsonMessageConverter" />
+		connection-factory="connectionFactory" />
 
 	<!-- Integration Code ends -->
+	<int:channel id="policyChannel" />
 
-	<rabbit:queue name="policyQueue" />
-	<rabbit:queue name="policyReplyQueue" />
+	<int:header-enricher input-channel="policyChannel"
+		output-channel="newPolicyChannel">
+		<int:header name="ROUTINGKEY" expression="payload.getKey()" />
+		<int:correlation-id expression="payload.getId()" />
+	</int:header-enricher>
 
-	<rabbit:topic-exchange id="topicExchange" name="app.topic.exchange">
+	<int:channel id="newPolicyChannel" />
+
+	<int:object-to-json-transformer
+		input-channel="newPolicyChannel" output-channel="newJsonPolicyChannel"
+		content-type="text/x-json" />
+
+	<int:channel id="newJsonPolicyChannel" />
+	<int:channel id="policyReplyChannel" />
+
+	<int-amqp:outbound-gateway request-channel="newJsonPolicyChannel"
+		amqp-template="rabbitTemplate" exchange-name="topicExchange"
+		routing-key-expression="headers.ROUTINGKEY" mapped-request-headers="*" />
+
+	<rabbit:topic-exchange name="topicExchange">
 		<rabbit:bindings>
 			<rabbit:binding queue="policyQueue" pattern="api.policy.data.#" />
 		</rabbit:bindings>
 	</rabbit:topic-exchange>
 
-	<bean class="com.rahul.learn.publish.MessageGateway" id="messageGateway">
-		<property name="rabbitTemplate" ref="rabbitTemplate" />
-		<property name="exchange" value="app.topic.exchange" />
-	</bean>
-	
-	<bean class="org.springframework.amqp.support.converter.JsonMessageConverter"
-		id="jsonMessageConverter" />
+	<rabbit:queue name="policyQueue" durable="true" />
+
+	<int:gateway id="messageService" service-interface="com.rahul.learn.publish.MessageService"
+		default-reply-channel="policyReplyChannel" default-request-channel="policyChannel">
+		<int:method name="publishMessage" request-channel="policyChannel"
+			reply-channel="policyReplyChannel" reply-timeout="6000"/>
+	</int:gateway>
 
 </beans>

@@ -1,7 +1,6 @@
 package com.rahul.learn.domain;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 public class RequestMessage implements Serializable {
 	/**
@@ -9,9 +8,9 @@ public class RequestMessage implements Serializable {
 	 */
 	private static final long serialVersionUID = -7127688995728374773L;
 
-	private String requestId;
+	private String key;
 	private String message;
-	private String id = UUID.randomUUID().toString();
+	private String id;
 
 	public String getMessage() {
 		return message;
@@ -21,12 +20,12 @@ public class RequestMessage implements Serializable {
 		this.message = message;
 	}
 
-	public String getRequestId() {
-		return requestId;
+	public String getKey() {
+		return key;
 	}
 
-	public void setRequestId(String requestId) {
-		this.requestId = requestId;
+	public void setKey(String key) {
+		this.key = key;
 	}
 
 	public String getId() {

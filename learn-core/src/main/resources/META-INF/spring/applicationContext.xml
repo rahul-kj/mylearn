@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
-	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
-	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit" xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp-2.2.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.2.xsd
 		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd
@@ -19,24 +17,29 @@
 
 	<rabbit:admin connection-factory="connectionFactory" />
 
-	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"
-		reply-queue="policyReplyQueue">
-		<rabbit:reply-listener />
-	</rabbit:template>
+	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory" />
+
 
 	<!-- Integration Code ends -->
-	
-	<rabbit:queue id="policyQueue" name="policyQueue" />
-	<rabbit:queue id="policyReplyQueue" name="policyReplyQueue" />
+	<int:channel id="policyJsonInChannel" />
 
-	<bean class="org.springframework.amqp.support.converter.JsonMessageConverter"
-		id="jsonMessageConverter" />
+	<int-amqp:inbound-gateway id="policyGateway"
+		request-channel="policyJsonInChannel" queue-names="policyQueue"
+		connection-factory="connectionFactory" />
 
-	<rabbit:listener-container
-		connection-factory="connectionFactory" message-converter="jsonMessageConverter" >
-		<rabbit:listener ref="messageHandler" method="handleRequest"
-			queue-names="policyQueue" />
-	</rabbit:listener-container>
+	<int:json-to-object-transformer type="com.rahul.learn.domain.RequestMessage"
+		input-channel="policyJsonInChannel" output-channel="policyInChannel" />
+
+	<int:channel id="policyInChannel" />
+
+	<int:chain input-channel="policyInChannel">
+		<int:service-activator method="handleRequest">
+			<bean class="com.rahul.learn.service.MessageHandler" />
+		</int:service-activator>
+		<int:object-to-json-transformer
+			content-type="text/x-json" />
+	</int:chain>
+
 
 	<bean class="com.rahul.learn.service.MessageHandler" id="messageHandler" />
 
