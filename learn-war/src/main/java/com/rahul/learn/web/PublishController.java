@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.rahul.learn.domain.RequestMessage;
+import com.rahul.learn.domain.ResponseMessage;
 import com.rahul.learn.publish.MessageService;
 
 @Controller
@@ -23,10 +24,10 @@ public class PublishController {
 	@ResponseBody
 	public Object publishMessage(@RequestBody RequestMessage requestMessage) {
 		requestMessage.setKey("api.policy.data.test");
-		String response = messageService.publishMessage(requestMessage);
+		ResponseMessage responseMessage = messageService.publishMessage(requestMessage);
 		
-		System.out.println("************************" + response);
+		System.out.println("************************" + responseMessage.getMessage());
 
-		return new ResponseEntity<String>(response, HttpStatus.OK);
+		return new ResponseEntity<String>(responseMessage.getMessage(), HttpStatus.OK);
 	}
 }

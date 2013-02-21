@@ -36,8 +36,6 @@
 		<int:service-activator method="handleRequest">
 			<bean class="com.rahul.learn.service.MessageHandler" />
 		</int:service-activator>
-		<int:object-to-json-transformer
-			content-type="text/x-json" />
 	</int:chain>
 
 
