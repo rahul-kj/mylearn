@@ -19,24 +19,29 @@
 
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory" />
 
-
 	<!-- Integration Code ends -->
-	<int:channel id="policyJsonInChannel" />
+	<!-- <int:channel id="policyJsonInChannel" />
 
 	<int-amqp:inbound-gateway id="policyGateway"
 		request-channel="policyJsonInChannel" queue-names="policyQueue"
 		connection-factory="connectionFactory" />
 
 	<int:json-to-object-transformer type="com.rahul.learn.domain.RequestMessage"
-		input-channel="policyJsonInChannel" output-channel="policyInChannel" />
+		input-channel="policyJsonInChannel" output-channel="policyInChannel" /> -->
 
 	<int:channel id="policyInChannel" />
+	
+	<int-amqp:inbound-gateway id="policyGateway"
+		request-channel="policyInChannel" queue-names="policyQueue"
+		connection-factory="connectionFactory" />
 
 	<int:chain input-channel="policyInChannel">
 		<int:service-activator method="handleRequest">
 			<bean class="com.rahul.learn.service.MessageHandler" />
 		</int:service-activator>
-	</int:chain>
+<!-- 		<int:object-to-json-transformer
+			content-type="text/x-json" /> -->	
+		</int:chain>
 
 
 	<bean class="com.rahul.learn.service.MessageHandler" id="messageHandler" />

@@ -52,14 +52,14 @@
 
 	<int:channel id="newPolicyChannel" />
 
-	<int:object-to-json-transformer
+	<!-- <int:object-to-json-transformer
 		input-channel="newPolicyChannel" output-channel="newJsonPolicyChannel"
-		content-type="text/x-json" />
+		content-type="text/x-json" /> -->
 
 	<int:channel id="newJsonPolicyChannel" />
 	<int:channel id="policyReplyChannel" />
 
-	<int-amqp:outbound-gateway request-channel="newJsonPolicyChannel"
+	<int-amqp:outbound-gateway request-channel="newPolicyChannel"
 		amqp-template="rabbitTemplate" exchange-name="topicExchange"
 		routing-key-expression="headers.ROUTINGKEY" mapped-request-headers="*" />
 
