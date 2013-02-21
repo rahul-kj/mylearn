@@ -1,5 +1,8 @@
 package com.rahul.learn.web;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +27,11 @@ public class PublishController {
 	@ResponseBody
 	public Object publishMessage(@RequestBody RequestMessage requestMessage) {
 		requestMessage.setKey("api.policy.data.test");
-		ResponseMessage responseMessage = messageService.publishMessage(requestMessage);
+		
+		Map<String, String> headers = new HashMap<String, String>();
+		headers.put(MessageService.ROUTING_KEY, "publish.message");
+		
+		ResponseMessage responseMessage = messageService.publishMessage(headers, requestMessage);
 		
 		System.out.println("************************" + responseMessage.getMessage());
 

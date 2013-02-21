@@ -44,24 +44,24 @@
 	<!-- Integration Code ends -->
 	<int:channel id="policyChannel" />
 
-	<int:header-enricher input-channel="policyChannel"
+	<!-- <int:header-enricher input-channel="policyChannel"
 		output-channel="newPolicyChannel">
 		<int:header name="ROUTINGKEY" expression="payload.getKey()" />
 		<int:correlation-id expression="payload.getId()" />
 	</int:header-enricher>
 
-	<int:channel id="newPolicyChannel" />
+	<int:channel id="newPolicyChannel" /> -->
 
-	<!-- <int:object-to-json-transformer
-		input-channel="newPolicyChannel" output-channel="newJsonPolicyChannel"
-		content-type="text/x-json" /> -->
+	<!-- <int:object-to-json-transformer input-channel="newPolicyChannel" output-channel="newJsonPolicyChannel" 
+		content-type="text/x-json" /> 
 
-	<int:channel id="newJsonPolicyChannel" />
+	<int:channel id="newJsonPolicyChannel" /> -->
 	<int:channel id="policyReplyChannel" />
 
-	<int-amqp:outbound-gateway request-channel="newPolicyChannel"
+	<int-amqp:outbound-gateway request-channel="policyChannel"
 		amqp-template="rabbitTemplate" exchange-name="topicExchange"
-		routing-key-expression="headers.ROUTINGKEY" mapped-request-headers="*" />
+		routing-key-expression="'api.policy.data.' + headers['routing.key']" mapped-request-headers="*"
+		mapped-reply-headers="*" />
 
 	<rabbit:topic-exchange name="topicExchange">
 		<rabbit:bindings>
@@ -74,7 +74,7 @@
 	<int:gateway id="messageService" service-interface="com.rahul.learn.publish.MessageService"
 		default-reply-channel="policyReplyChannel" default-request-channel="policyChannel">
 		<int:method name="publishMessage" request-channel="policyChannel"
-			reply-channel="policyReplyChannel" reply-timeout="6000"/>
+			reply-channel="policyReplyChannel" reply-timeout="6000" />
 	</int:gateway>
 
 </beans>

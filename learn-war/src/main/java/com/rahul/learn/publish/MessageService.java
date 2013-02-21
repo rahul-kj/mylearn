@@ -1,5 +1,10 @@
 package com.rahul.learn.publish;
 
+import java.util.Map;
+
+import org.springframework.integration.annotation.Headers;
+import org.springframework.integration.annotation.Payload;
+
 import com.rahul.learn.domain.RequestMessage;
 import com.rahul.learn.domain.ResponseMessage;
 
@@ -9,5 +14,7 @@ import com.rahul.learn.domain.ResponseMessage;
  * 
  */
 public interface MessageService {
-	public ResponseMessage publishMessage(RequestMessage requestMessage);
+	String ROUTING_KEY = "routing.key";
+	
+	public ResponseMessage publishMessage(@Headers Map<String, String> headers,@Payload RequestMessage requestMessage);
 }
